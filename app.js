@@ -2,16 +2,36 @@
  * GO Fest 2026 Scavenger Hunt — app logic
  * All state lives in localStorage on the trainer's device. Nothing is sent
  * anywhere; verification happens in person with a Community Ambassador.
+ *
+ * The hunt runs once per event day: each day gets its own four tasks
+ * (catch 26 / obtain 1 shiny / catch 1 Mewtwo / high five) with separate
+ * progress. The catch and shiny tasks are each rerollable once per day, and
+ * no species is ever dealt twice in the same weekend.
  * ==========================================================================*/
 
 (function () {
   "use strict";
 
-  const STORAGE_KEY = "gofest2026-hunt-v1";
-  const TASK_COUNT = 3;
+  const STORAGE_KEY = "gofest2026-hunt-v2";
 
-  /** @type {{username:string, tasks:Array, rerollUsed:boolean, createdAt:number}|null} */
+  /**
+   * @type {{
+   *   username: string,
+   *   createdAt: number,
+   *   usedSpecies: string[],  // every species ever dealt, incl. rerolled-away
+   *   days: {[dayKey: string]: null | {
+   *     tasks: Array<{id:string, type:string, species?:string, habitat?:string, done:boolean}>,
+   *     rerolls: {catch: boolean, shiny: boolean},
+   *   }},
+   * }|null}
+   */
   let state = null;
+  let activeDay = defaultDay();
+
+  function defaultDay() {
+    // Default to Sunday's hunt once Saturday is over (event: Jul 11–12, 2026).
+    return new Date() >= new Date(2026, 6, 12) ? "day2" : "day1";
+  }
 
   // ---------------------------------------------------------------- storage
   function loadState() {
@@ -19,7 +39,7 @@
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return null;
       const parsed = JSON.parse(raw);
-      if (!parsed || typeof parsed.username !== "string" || !Array.isArray(parsed.tasks) || parsed.tasks.length !== TASK_COUNT) {
+      if (!parsed || typeof parsed.username !== "string" || !parsed.days || !Array.isArray(parsed.usedSpecies)) {
         return null;
       }
       return parsed;
@@ -37,114 +57,67 @@
   }
 
   // ------------------------------------------------------------- randomness
-  function randInt(min, max) {
-    return min + Math.floor(Math.random() * (max - min + 1));
-  }
-
   function pickFrom(arr) {
     return arr[Math.floor(Math.random() * arr.length)];
-  }
-
-  function shuffle(arr) {
-    const a = arr.slice();
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-  }
-
-  // --------------------------------------------------------- task generation
-  function makeCountTask(species) {
-    const range = TIER_COUNTS[species.tier];
-    return {
-      id: cryptoId(),
-      type: "count",
-      species: species.name,
-      habitat: species.habitat,
-      count: randInt(range.min, range.max),
-      done: false,
-    };
-  }
-
-  function makeShinyTask(species) {
-    return {
-      id: cryptoId(),
-      type: "shiny",
-      species: species.name,
-      habitat: species.habitat,
-      done: false,
-    };
-  }
-
-  function makeMewtwoTask() {
-    return { id: cryptoId(), type: "mewtwo", done: false };
   }
 
   function cryptoId() {
     return Math.random().toString(36).slice(2, 10);
   }
 
+  // --------------------------------------------------------- task generation
   /**
-   * Pick a species whose name and habitat differ from the ones already used.
-   * Habitat exclusion is best-effort: relaxed if it would empty the pool.
+   * Pick a species from the given day's habitats and allowed tiers, never
+   * repeating anything dealt earlier this weekend. Tier and habitat filters
+   * are relaxed (in that order) in the unlikely event the pool runs dry.
    */
-  function pickSpecies(usedNames, usedHabitats) {
-    let pool = SPECIES.filter((s) => !usedNames.has(s.name) && !usedHabitats.has(s.habitat));
-    if (pool.length === 0) pool = SPECIES.filter((s) => !usedNames.has(s.name));
-    if (pool.length === 0) pool = SPECIES;
-    return pickFrom(pool);
+  function pickSpecies(dayKey, tiers) {
+    const habitats = DAYS[dayKey].habitats;
+    const used = new Set(state.usedSpecies);
+    let pool = SPECIES.filter(
+      (s) => habitats.includes(s.habitat) && tiers.includes(s.tier) && !used.has(s.name)
+    );
+    if (pool.length === 0) pool = SPECIES.filter((s) => habitats.includes(s.habitat) && !used.has(s.name));
+    if (pool.length === 0) pool = SPECIES.filter((s) => habitats.includes(s.habitat));
+    const species = pickFrom(pool);
+    state.usedSpecies.push(species.name);
+    return species;
   }
 
-  /**
-   * Build one new task. `slots` are the task types to fill; species-based
-   * types avoid repeating species/habitats already in `usedNames`/`usedHabitats`.
-   */
-  function buildTask(type, usedNames, usedHabitats) {
-    if (type === "mewtwo") return makeMewtwoTask();
-    const species = pickSpecies(usedNames, usedHabitats);
-    usedNames.add(species.name);
-    usedHabitats.add(species.habitat);
-    return type === "shiny" ? makeShinyTask(species) : makeCountTask(species);
+  function makeSpeciesTask(type, dayKey) {
+    const species = pickSpecies(dayKey, type === "catch" ? CATCH_TASK_TIERS : SHINY_TASK_TIERS);
+    return { id: cryptoId(), type, species: species.name, habitat: species.habitat, done: false };
   }
 
-  function generateTaskSet() {
-    const slots = ["count", "count", "count"];
-    let special = 0;
-    if (Math.random() < MEWTWO_TASK_CHANCE) slots[special++] = "mewtwo";
-    if (Math.random() < SHINY_TASK_CHANCE) slots[special++] = "shiny";
-
-    const usedNames = new Set();
-    const usedHabitats = new Set();
-    return shuffle(slots).map((type) => buildTask(type, usedNames, usedHabitats));
-  }
-
-  /** Replacement task for a reroll: never repeats species/habitats on the board. */
-  function rerollReplacement(oldTask, keptTasks) {
-    const usedNames = new Set(keptTasks.map((t) => t.species).filter(Boolean));
-    const usedHabitats = new Set(keptTasks.map((t) => t.habitat).filter(Boolean));
-    if (oldTask.species) usedNames.add(oldTask.species); // never re-deal the same species
-
-    // A reroll never introduces a second special of a kind already on the board,
-    // and never deals Mewtwo (it stays a rare initial-draw surprise).
-    const hasShiny = keptTasks.some((t) => t.type === "shiny");
-    const type = !hasShiny && Math.random() < SHINY_TASK_CHANCE ? "shiny" : "count";
-    return buildTask(type, usedNames, usedHabitats);
+  /** Deal a full day: catch 26, shiny, Mewtwo, high five — in that order. */
+  function dealDay(dayKey) {
+    state.days[dayKey] = {
+      tasks: [
+        makeSpeciesTask("catch", dayKey),
+        makeSpeciesTask("shiny", dayKey),
+        { id: cryptoId(), type: "mewtwo", done: false },
+        { id: cryptoId(), type: "highfive", done: false },
+      ],
+      rerolls: { catch: false, shiny: false },
+    };
+    saveState();
   }
 
   // ---------------------------------------------------------------- helpers
   function taskText(task) {
     if (task.type === "mewtwo") return MEWTWO_TASK.text;
-    if (task.type === "shiny") return `Catch a shiny ${task.species}`;
-    return `Catch ${task.count} ${task.species}`;
+    if (task.type === "highfive") return HIGHFIVE_TASK.text;
+    if (task.type === "shiny") return `Obtain 1 shiny ${task.species}`;
+    return `Catch ${CATCH_TASK_COUNT} ${task.species}`;
   }
 
   function taskNote(task) {
     if (task.type === "mewtwo") return MEWTWO_TASK.note;
+    if (task.type === "highfive") return HIGHFIVE_TASK.note;
     const species = SPECIES.find((s) => s.name === task.species);
     const line = species ? species.line : task.species;
     if (task.type === "shiny") {
-      return `Any shiny in the family counts: ${line}.`;
+      return `Catching it or trading for it both count. Any shiny in the family works: ${line}.`;
     }
     return `The whole family counts: any mix of ${line}.`;
   }
@@ -155,8 +128,11 @@
   const screenTasks = $("#screen-tasks");
   const taskList = $("#task-list");
   const greeting = $("#greeting");
+  const dayTabs = $("#day-tabs");
+  const dayIntro = $("#day-intro");
   const rerollStatus = $("#reroll-status");
   const allDoneBanner = $("#all-done-banner");
+  const allDoneText = $("#all-done-text");
   const menuBtn = $("#menu-btn");
   const menuPop = $("#menu-pop");
   const modalBackdrop = $("#modal-backdrop");
@@ -204,11 +180,46 @@
     screenTasks.hidden = screen !== "tasks";
   }
 
+  function renderDayTabs() {
+    dayTabs.innerHTML = "";
+    for (const [dayKey, day] of Object.entries(DAYS)) {
+      const btn = document.createElement("button");
+      btn.className = "day-tab" + (dayKey === activeDay ? " is-active" : "");
+      btn.setAttribute("aria-pressed", String(dayKey === activeDay));
+      const dayState = state.days[dayKey];
+      const doneCount = dayState ? dayState.tasks.filter((t) => t.done).length : 0;
+      const progress = dayState ? ` · ${doneCount}/${dayState.tasks.length}` : "";
+      btn.innerHTML = `<strong>${day.label}</strong><span>${day.date}${progress}</span>`;
+      btn.addEventListener("click", () => {
+        activeDay = dayKey;
+        renderTasks();
+      });
+      dayTabs.appendChild(btn);
+    }
+  }
+
   function renderTasks(rerolledId) {
     greeting.textContent = `Trainer ${state.username}`;
-    taskList.innerHTML = "";
 
-    state.tasks.forEach((task, index) => {
+    // Deal this day's tasks the first time it's viewed.
+    if (!state.days[activeDay]) dealDay(activeDay);
+    const dayState = state.days[activeDay];
+    const day = DAYS[activeDay];
+
+    renderDayTabs();
+
+    dayIntro.innerHTML = "";
+    for (const key of day.habitats) {
+      const h = HABITATS[key];
+      const chip = document.createElement("span");
+      chip.className = "habitat-chip habitat-chip-mini";
+      chip.style.setProperty("--chip", h.color);
+      chip.textContent = `${h.emoji} ${h.name} · ${h.time}`;
+      dayIntro.appendChild(chip);
+    }
+
+    taskList.innerHTML = "";
+    dayState.tasks.forEach((task, index) => {
       const li = document.createElement("li");
       li.className = "task-card" + (task.done ? " is-done" : "");
       if (task.id === rerolledId) li.classList.add("rerolling");
@@ -222,22 +233,25 @@
       if (habitat) {
         chip.style.setProperty("--chip", habitat.color);
         chip.textContent = `${habitat.emoji} ${habitat.name}`;
-      } else {
+      } else if (task.type === "mewtwo") {
         chip.style.setProperty("--chip", "#5f3dc4");
         chip.textContent = "🧬 Legendary Exception";
+      } else {
+        chip.style.setProperty("--chip", "#e8590c");
+        chip.textContent = "🖐️ Just for fun";
       }
       top.appendChild(chip);
       if (habitat) {
         const when = document.createElement("span");
         when.className = "habitat-when";
-        when.textContent = habitat.day;
+        when.textContent = `${day.label} · ${habitat.time}`;
         top.appendChild(when);
       }
 
       const text = document.createElement("p");
       text.className = "task-text";
       if (task.type === "shiny") {
-        text.append("Catch a ");
+        text.append("Obtain 1 ");
         const em = document.createElement("span");
         em.className = "shiny";
         em.textContent = "✨ shiny";
@@ -261,7 +275,8 @@
       doneBtn.addEventListener("click", () => toggleDone(index));
       actions.appendChild(doneBtn);
 
-      if (!state.rerollUsed) {
+      const rerollable = task.type === "catch" || task.type === "shiny";
+      if (rerollable && !dayState.rerolls[task.type]) {
         const rerollBtn = document.createElement("button");
         rerollBtn.className = "reroll-btn";
         rerollBtn.innerHTML = `<span aria-hidden="true">🎲</span> Reroll`;
@@ -273,37 +288,42 @@
       taskList.appendChild(li);
     });
 
-    rerollStatus.textContent = state.rerollUsed
-      ? "Your one reroll has been used."
-      : "You may reroll ONE task — once for the whole hunt.";
+    const left = ["catch", "shiny"].filter((t) => !dayState.rerolls[t]).length;
+    rerollStatus.textContent =
+      left === 0
+        ? `Both of ${day.label}'s rerolls have been used.`
+        : `${left} of 2 rerolls left for ${day.label} — one each for the Catch and Shiny tasks.`;
 
-    const allDone = state.tasks.every((t) => t.done);
+    const allDone = dayState.tasks.every((t) => t.done);
+    allDoneText.textContent = `${day.label}'s hunt complete!`;
     allDoneBanner.hidden = !allDone;
   }
 
   // ---------------------------------------------------------------- actions
   function toggleDone(index) {
-    const wasAllDone = state.tasks.every((t) => t.done);
-    state.tasks[index].done = !state.tasks[index].done;
+    const dayState = state.days[activeDay];
+    const wasAllDone = dayState.tasks.every((t) => t.done);
+    dayState.tasks[index].done = !dayState.tasks[index].done;
     saveState();
     renderTasks();
-    if (!wasAllDone && state.tasks.every((t) => t.done)) celebrate();
+    if (!wasAllDone && dayState.tasks.every((t) => t.done)) celebrate();
   }
 
   function confirmReroll(index) {
-    const task = state.tasks[index];
+    const dayState = state.days[activeDay];
+    const task = dayState.tasks[index];
+    const label = task.type === "catch" ? "Catch" : "Shiny";
     openModal({
-      title: "Use your only reroll?",
+      title: `Reroll your ${label} task?`,
       bodyHTML: `
         <p>This will replace:</p>
         <div class="modal-task-preview">${escapeHTML(taskText(task))}</div>
-        <p>You get <strong>one reroll for the entire hunt</strong> — after this, your tasks are locked in.</p>`,
+        <p>The ${label} task can be rerolled <strong>once per day</strong> — after this, it's locked in for ${DAYS[activeDay].label}.</p>`,
       confirmLabel: "Reroll it",
       onConfirm: () => {
-        const kept = state.tasks.filter((_, i) => i !== index);
-        const fresh = rerollReplacement(task, kept);
-        state.tasks[index] = fresh;
-        state.rerollUsed = true;
+        const fresh = makeSpeciesTask(task.type, activeDay);
+        dayState.tasks[index] = fresh;
+        dayState.rerolls[task.type] = true;
         saveState();
         renderTasks(fresh.id);
       },
@@ -313,12 +333,13 @@
   function confirmReset() {
     openModal({
       title: "Start over?",
-      bodyHTML: `<p>This erases your trainer name, your three tasks, and your reroll. <strong>Community Ambassadors may not accept a re-dealt hunt</strong> — only do this if an Ambassador tells you to.</p>`,
+      bodyHTML: `<p>This erases your trainer name and BOTH days' tasks, progress, and rerolls. <strong>Community Ambassadors may not accept a re-dealt hunt</strong> — only do this if an Ambassador tells you to.</p>`,
       confirmLabel: "Erase & start over",
       danger: true,
       onConfirm: () => {
         localStorage.removeItem(STORAGE_KEY);
         state = null;
+        activeDay = defaultDay();
         $("#username").value = "";
         show("welcome");
       },
@@ -330,7 +351,7 @@
       title: "About this hunt",
       bodyHTML: `
         <p>An <strong>unofficial, community-run scavenger hunt</strong> for GO Fest 2026: Global (July 11–12).</p>
-        <p>Tasks are dealt from the event's wild habitat spawns — evolutions, babies, and regional forms all count toward a task (plus one special exception: Mewtwo).</p>
+        <p>You hunt twice — four fresh tasks each day, drawn from that day's habitats. Every non-Legendary Pokémon in the game is fair game (minus regionals we can't get in Boston), and a task for one species is satisfied by anything in its evolutionary family.</p>
         <p>Everything is stored on this device only. To claim your reward, show this app and your Pokémon GO app to a Community Ambassador.</p>
         <p>Not affiliated with Niantic, Nintendo, or The Pokémon Company.</p>`,
       confirmLabel: "Got it",
@@ -368,9 +389,9 @@
     if (!username) return;
     state = {
       username,
-      tasks: generateTaskSet(),
-      rerollUsed: false,
       createdAt: Date.now(),
+      usedSpecies: [],
+      days: { day1: null, day2: null },
     };
     saveState();
     renderTasks();

@@ -33,7 +33,7 @@
         </div>
         <p class="eyebrow">GO Fest 2026 · Global</p>
         <h1>Scavenger&nbsp;Hunt</h1>
-        <p class="tagline">Three tasks. One reroll. Catch 'em in the wild, then show a Community&nbsp;Ambassador.</p>
+        <p class="tagline">Four tasks a day, two days of hunting. Catch 'em in the wild, then show a Community&nbsp;Ambassador.</p>
 
         <form id="welcome-form" autocomplete="off">
           <label class="field-label" for="username">Trainer name</label>
@@ -47,9 +47,9 @@
         <details class="how-it-works">
           <summary>How it works</summary>
           <ol>
-            <li>You get <strong>3 random tasks</strong> — mostly “catch” challenges built around the event’s wild habitat spawns.</li>
-            <li><strong>Evolutions count!</strong> A “Catch 20 Pikachu” task is completed by any mix of Pichu, Pikachu, or Raichu (any form).</li>
-            <li>You may <strong>reroll one task, once</strong> — for the whole hunt. Choose wisely.</li>
+            <li>You hunt <strong>both event days</strong> — a fresh set of 4 tasks each day, drawn from that day’s habitats: <strong>Catch 26</strong>, <strong>Obtain 1 shiny</strong> (catching or trading both count), <strong>Catch 1 Mewtwo</strong>, and <strong>High five your Community Ambassador</strong>.</li>
+            <li><strong>Evolutions count!</strong> A “Catch 26 Pikachu” task is completed by any mix of Pichu, Pikachu, or Raichu (any form).</li>
+            <li>The Catch and Shiny tasks can each be <strong>rerolled once per day</strong> — two rerolls a day, four for the weekend. You’ll never be dealt the same species twice.</li>
             <li>Done? <strong>Show this screen and your game</strong> to a Community Ambassador to claim your reward. Nothing to submit, nothing to connect.</li>
           </ol>
         </details>
@@ -70,10 +70,13 @@
         </div>
       </header>
 
+      <div id="day-tabs" class="day-tabs" role="group" aria-label="Event day"></div>
+      <div id="day-intro" class="day-intro"></div>
+
       <div id="all-done-banner" class="all-done" hidden>
         <span class="all-done-emoji" aria-hidden="true">🎉</span>
         <div>
-          <strong>Hunt complete!</strong>
+          <strong id="all-done-text">Hunt complete!</strong>
           <p>Show this screen and your Pokémon GO app to a Community Ambassador to claim your reward.</p>
         </div>
       </div>
