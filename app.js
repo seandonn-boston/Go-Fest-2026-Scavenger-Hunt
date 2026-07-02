@@ -66,19 +66,30 @@
   }
 
   // --------------------------------------------------------- task generation
+  /** A species qualifies for a day if EITHER of its types is featured that day. */
+  function onDay(species, dayKey) {
+    return species.types.some((t) => DAYS[dayKey].types.includes(t));
+  }
+
+  /** The habitat block a species belongs to on a given day (for the card chip):
+   *  its primary type's block if featured that day, otherwise its second type's. */
+  function habitatFor(species, dayKey) {
+    const type = species.types.find((t) => DAYS[dayKey].types.includes(t)) || species.types[0];
+    return TYPE_HABITAT[type];
+  }
+
   /**
-   * Pick a species from the given day's habitats and allowed tiers, never
-   * repeating anything dealt earlier this weekend. Tier and habitat filters
-   * are relaxed (in that order) in the unlikely event the pool runs dry.
+   * Pick a species featured on the given day from the allowed tiers, never
+   * repeating anything dealt earlier this weekend (rerolled-away picks
+   * included). The tier filter is relaxed in the unlikely event it empties
+   * the pool; the no-repeat rule is only relaxed if literally every featured
+   * species has already been dealt.
    */
   function pickSpecies(dayKey, tiers) {
-    const habitats = DAYS[dayKey].habitats;
     const used = new Set(state.usedSpecies);
-    let pool = SPECIES.filter(
-      (s) => habitats.includes(s.habitat) && tiers.includes(s.tier) && !used.has(s.name)
-    );
-    if (pool.length === 0) pool = SPECIES.filter((s) => habitats.includes(s.habitat) && !used.has(s.name));
-    if (pool.length === 0) pool = SPECIES.filter((s) => habitats.includes(s.habitat));
+    let pool = SPECIES.filter((s) => onDay(s, dayKey) && tiers.includes(s.tier) && !used.has(s.name));
+    if (pool.length === 0) pool = SPECIES.filter((s) => onDay(s, dayKey) && !used.has(s.name));
+    if (pool.length === 0) pool = SPECIES.filter((s) => onDay(s, dayKey));
     const species = pickFrom(pool);
     state.usedSpecies.push(species.name);
     return species;
@@ -86,7 +97,7 @@
 
   function makeSpeciesTask(type, dayKey) {
     const species = pickSpecies(dayKey, type === "catch" ? CATCH_TASK_TIERS : SHINY_TASK_TIERS);
-    return { id: cryptoId(), type, species: species.name, habitat: species.habitat, done: false };
+    return { id: cryptoId(), type, species: species.name, habitat: habitatFor(species, dayKey), done: false };
   }
 
   /** Deal a full day: catch 26, shiny, Mewtwo, high five — in that order. */
@@ -351,7 +362,7 @@
       title: "About this hunt",
       bodyHTML: `
         <p>An <strong>unofficial, community-run scavenger hunt</strong> for GO Fest 2026: Global (July 11–12).</p>
-        <p>You hunt twice — four fresh tasks each day, drawn from that day's habitats. Every non-Legendary Pokémon in the game is fair game (minus regionals we can't get in Boston), and a task for one species is satisfied by anything in its evolutionary family.</p>
+        <p>You hunt twice — four fresh tasks each day, matched to that day's nine featured types. Every non-Legendary Pokémon in the game is fair game (minus regionals we can't get in Boston, and no shape-shifters — sorry, Ditto and Zorua). A task for one species is satisfied by anything in its evolutionary family, and you'll never be asked to hunt the same species twice all weekend.</p>
         <p>Everything is stored on this device only. To claim your reward, show this app and your Pokémon GO app to a Community Ambassador.</p>
         <p>Not affiliated with Niantic, Nintendo, or The Pokémon Company.</p>`,
       confirmLabel: "Got it",

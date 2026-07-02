@@ -7,11 +7,13 @@
  * The pool it builds encodes the hunt rules:
  *   - every species RELEASED in Pokémon GO is eligible…
  *   - …except Legendary, Mythical, and Ultra Beast Pokémon (Mewtwo remains a
- *     special task in data.js, not part of this pool), and
- *   - …except regional exclusives that cannot be caught in Boston, MA.
+ *     special task in data.js, not part of this pool),
+ *   - …except regional exclusives that cannot be caught in Boston, MA, and
+ *   - …except a small hand-banned list (Ditto, Zorua, Zoroark).
  *   - species are grouped into evolutionary families (a task for one member is
- *     satisfied by any member), and each family is assigned to the GO Fest
- *     habitat time block matching its primary type.
+ *     satisfied by any member). Each entry carries the label species' full
+ *     typing — data.js/app.js use BOTH types to decide which event day(s) a
+ *     species can be rolled on (dual-typed species can qualify for both).
  *
  * After running, bump CACHE_VERSION in sw.js so installed devices update.
  * ==========================================================================*/
@@ -26,15 +28,15 @@ const DATA_JS = join(dirname(fileURLToPath(import.meta.url)), "..", "data.js");
 
 // ---- hunt configuration ----------------------------------------------------
 
-// GO Fest 2026 habitat blocks: primary type → habitat key (all 18 types).
-const TYPE_HABITAT = {
-  ice: "stormfire", electric: "stormfire", fire: "stormfire",
-  psychic: "astral", ghost: "astral", water: "astral",
-  flying: "dragonflight", rock: "dragonflight", dragon: "dragonflight",
-  ground: "earthforged", steel: "earthforged", normal: "earthforged",
-  poison: "verdant", bug: "verdant", grass: "verdant",
-  dark: "twilight", fairy: "twilight", fighting: "twilight",
-};
+// All 18 GO types — used to validate the gamemaster's typings.
+const KNOWN_TYPES = new Set([
+  "ice", "electric", "fire", "psychic", "ghost", "water",
+  "flying", "rock", "dragon", "ground", "steel", "normal",
+  "poison", "bug", "grass", "dark", "fairy", "fighting",
+]);
+
+// Banned from the hunt outright, independent of any other rule.
+const HARD_EXCLUDE = new Set(["ditto", "zorua", "zoroark"]);
 
 // Regional exclusives that CANNOT be caught in Boston, MA — excluded from the
 // pool (the user rule: only Pokémon actually obtainable at the event count).
@@ -83,7 +85,7 @@ const BABIES = new Set([
 const RARE_FAMILIES = new Set([
   "dratini", "larvitar", "bagon", "beldum", "gible", "deino", "axew",
   "goomy", "jangmo_o", "dreepy", "frigibax",
-  "unown", "ditto", "lucario", "larvesta", "rotom", "gimmighoul",
+  "unown", "lucario", "larvesta", "rotom", "gimmighoul",
   "chansey", "togetic", "noibat",
 ]);
 
@@ -94,7 +96,7 @@ const UNCOMMON_EXTRA = new Set([
 ]);
 
 // Catchable in GO but flagged released:false in PvPoke's sim-focused data.
-const FORCE_INCLUDE = new Set(["ditto", "eiscue"]);
+const FORCE_INCLUDE = new Set(["eiscue"]);
 
 // ---- load gamemaster --------------------------------------------------------
 async function loadGamemaster() {
@@ -115,6 +117,8 @@ const EXCLUDE_TAGS = new Set(["legendary", "mythical", "ultrabeast", "mega", "sh
 const byDex = new Map();
 for (const p of gm.pokemon) {
   if (p.released !== true && !FORCE_INCLUDE.has(p.speciesId)) continue;
+  // match "zorua_hisuian" etc. as well as the plain id
+  if (HARD_EXCLUDE.has(p.speciesId) || HARD_EXCLUDE.has(p.speciesId.split("_")[0])) continue;
   const tags = p.tags || [];
   if (tags.some((t) => EXCLUDE_TAGS.has(t))) continue;
   if (p.speciesId.endsWith("_shadow") || p.speciesId.endsWith("_mega")) continue;
@@ -154,10 +158,10 @@ for (const members of families.values()) {
   // Label: first non-baby member by dex (falls back to the first member).
   const label = members.find((m) => !BABIES.has(m.speciesId)) || members[0];
 
-  const primaryType = label.types[0];
-  const habitat = TYPE_HABITAT[primaryType];
-  if (!habitat) {
-    console.warn(`SKIP ${label.speciesId}: unmapped type "${primaryType}"`);
+  const types = label.types.filter((t) => t !== "none");
+  const badType = types.find((t) => !KNOWN_TYPES.has(t));
+  if (badType || types.length === 0) {
+    console.warn(`SKIP ${label.speciesId}: unexpected typing ${JSON.stringify(label.types)}`);
     continue;
   }
 
@@ -169,15 +173,15 @@ for (const members of families.values()) {
   let line = names.length === 1 ? names[0] : `${names.slice(0, -1).join(", ")} & ${names[names.length - 1]}`;
   if (members.some((m) => hasVariants.has(m.dex))) line += " — any form";
 
-  species.push({ name: displayName(label), habitat, tier, line, dex: label.dex });
+  species.push({ name: displayName(label), types, tier, line, dex: label.dex });
 }
 
 species.sort((a, b) => a.dex - b.dex);
 
 // ---- write into data.js between the GENERATED markers -----------------------
 const entries = species
-  .map(({ name, habitat, tier, line }) =>
-    `  { name: ${JSON.stringify(name)}, habitat: ${JSON.stringify(habitat)}, tier: ${JSON.stringify(tier)}, line: ${JSON.stringify(line)} },`)
+  .map(({ name, types, tier, line }) =>
+    `  { name: ${JSON.stringify(name)}, types: ${JSON.stringify(types)}, tier: ${JSON.stringify(tier)}, line: ${JSON.stringify(line)} },`)
   .join("\n");
 
 const dataJs = readFileSync(DATA_JS, "utf8");
@@ -192,12 +196,19 @@ writeFileSync(
 );
 
 // ---- report ------------------------------------------------------------------
-const perHabitat = {};
+// Day membership mirrors DAYS[*].types in data.js — keep these in sync.
+const SATURDAY = new Set(["ice", "electric", "fire", "psychic", "ghost", "water", "flying", "rock", "dragon"]);
+const SUNDAY = new Set(["ground", "steel", "normal", "poison", "bug", "grass", "dark", "fairy", "fighting"]);
+let sat = 0, sun = 0, both = 0;
 const perTier = {};
 for (const s of species) {
-  perHabitat[s.habitat] = (perHabitat[s.habitat] || 0) + 1;
+  const onSat = s.types.some((t) => SATURDAY.has(t));
+  const onSun = s.types.some((t) => SUNDAY.has(t));
+  if (onSat) sat++;
+  if (onSun) sun++;
+  if (onSat && onSun) both++;
   perTier[s.tier] = (perTier[s.tier] || 0) + 1;
 }
 console.log(`wrote ${species.length} families into data.js`);
-console.log("per habitat:", perHabitat);
+console.log(`day pools — Saturday: ${sat}, Sunday: ${sun}, on both days: ${both}`);
 console.log("per tier:", perTier);

@@ -15,35 +15,32 @@ Every trainer gets the same four task slots each day:
 | 3 | **Catch 1 Mewtwo** | ❌ fixed |
 | 4 | **High five your Community Ambassador** | ❌ fixed (and mandatory 🖐️) |
 
-- **Two hunts per weekend.** Saturday and Sunday each get their own tasks and their own progress. Day 1 species come from Saturday's habitats (Stormfire Peaks, Astral Tides, Dragonflight Summit); Day 2 from Sunday's (Earthforged Domain, Verdant Anomaly, Twilight Battlefield).
+- **Two hunts per weekend.** Saturday and Sunday each get their own tasks, their own progress, their own Mewtwo (2 expected for the weekend), and their own rerolls.
 - **Species lines count.** A "Catch 26 Pikachu" task is satisfied by any mix of Pichu, Pikachu, or Raichu (any form, including Alolan). Every card spells out its family so there's no arguing at the verification table.
-- **Two rerolls per day, four per weekend** — one for the Catch task, one for the Shiny task, each behind a confirmation warning.
-- **No repeats.** A trainer is never dealt the same species twice in one weekend — day 2 draws and all rerolls exclude everything previously rolled (even species rerolled away).
+- **Two rerolls per day, four per weekend** — one for the Catch task, one for the Shiny task, each behind a confirmation warning. Mewtwo and the high five can't be rerolled.
+- **No repeats, ever.** The Catch species never matches the Shiny species, and no species is dealt twice in one weekend: every draw and every reroll excludes everything previously rolled — including species rerolled away (the trainer already said they don't want them). Reroll everything both days and you're guaranteed 8 distinct species.
 - **Everything is local.** Name, tasks, rerolls, and completion checkmarks live in `localStorage`. Verification is human: show an Ambassador.
 
 ## The species pool
 
-**Every Pokémon released in Pokémon GO is fair game** except:
+Everything spawns in the wild during the event, so **every Pokémon released in Pokémon GO is fair game** except:
 
 - **Legendary, Mythical, and Ultra Beast Pokémon** (Mewtwo is the deliberate exception, as its own fixed task — satisfiable via the event's Mega Mewtwo X/Y Super Mega Raids).
+- **Ditto, Zorua, and Zoroark** — banned outright (shape-shifters make terrible scavenger-hunt targets).
 - **Regional exclusives not catchable in Boston, MA** — Klefki, Kangaskhan, Mr. Mime, Heracross, Corsola, Torkoal, Tropius, Relicanth, Pachirisu, Chatot, Carnivine, Sigilyph, Maractus, Hawlucha, Comfey, Bouffalant (NYC metro only — close, but no), Stonjourner, and the "wrong halves" of regional pairs (Volbeat→we keep Illumise, Zangoose→Seviper, Solrock→Lunatone, Pansage/Pansear→Panpour, Durant→Heatmor). Species where Boston just gets a specific *form* (Shellos, Basculin, Oricorio, Flabébé, Tatsugiri, Squawkabilly) stay in.
 
-A species' **primary type dictates its habitat time block**, which is what assigns it to a day:
+The pool is split into a **Saturday list and a Sunday list by type**. Each day features nine types, and a species qualifies for a day if **either** of its types is featured — so dual-typed species can appear on both lists. Ralts (Psychic/Fairy) can roll on either day; Froslass's line (Ice) is Saturday-only. The weekend no-repeat rule is what keeps a trainer from hunting Ralts twice.
 
-| Day | Habitat | Time | Types |
-| --- | --- | --- | --- |
-| Sat Jul 11 | Stormfire Peaks | 10am–1pm | Ice · Electric · Fire |
-| Sat Jul 11 | Astral Tides | 1pm–4pm | Psychic · Ghost · Water |
-| Sat Jul 11 | Dragonflight Summit | 4pm–7pm | Flying · Rock · Dragon |
-| Sun Jul 12 | Earthforged Domain | 10am–1pm | Ground · Steel · Normal |
-| Sun Jul 12 | Verdant Anomaly | 1pm–4pm | Poison · Bug · Grass |
-| Sun Jul 12 | Twilight Battlefield | 4pm–7pm | Dark · Fairy · Fighting |
+| Day | Featured types | Habitat blocks |
+| --- | --- | --- |
+| Sat Jul 11 | Ice, Electric, Fire, Psychic, Ghost, Water, Flying, Rock, Dragon | Stormfire Peaks (10–1) · Astral Tides (1–4) · Dragonflight Summit (4–7) |
+| Sun Jul 12 | Ground, Steel, Normal, Poison, Bug, Grass, Dark, Fairy, Fighting | Earthforged Domain (10–1) · Verdant Anomaly (1–4) · Twilight Battlefield (4–7) |
 
 The "Catch 26" task only draws common/uncommon families (26 Deino would be cruel); the Shiny task can roll anything, pseudo-legendaries included.
 
 ### Regenerating the pool
 
-The `SPECIES` array in `data.js` (386 evolutionary families) is generated — **don't edit it by hand**:
+The `SPECIES` array in `data.js` (384 evolutionary families, each carrying the full typing used for day placement) is generated — **don't edit it by hand**:
 
 ```bash
 node tools/generate-data.mjs            # fetches PvPoke's GO gamemaster
