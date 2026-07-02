@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>GO Fest 2026 Scavenger Hunt</title>
+  <meta name="description" content="Unofficial scavenger hunt companion for Pokémon GO Fest 2026: Global. Get three random catch tasks and show them to a Community Ambassador." />
+  <meta name="theme-color" content="#14102b" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon-192.png" type="image/png" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="GO Hunt 2026" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="bg-orbs" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <main id="app">
+    <!-- ============ Welcome / username screen ============ -->
+    <section id="screen-welcome" class="screen" hidden>
+      <div class="welcome-wrap">
+        <div class="logo-ball" aria-hidden="true">
+          <div class="ball-top"></div>
+          <div class="ball-band"></div>
+          <div class="ball-button"></div>
+        </div>
+        <p class="eyebrow">GO Fest 2026 · Global</p>
+        <h1>Scavenger&nbsp;Hunt</h1>
+        <p class="tagline">Four tasks a day, two days of hunting. Catch 'em in the wild, then show a Community&nbsp;Ambassador.</p>
+
+        <form id="welcome-form" autocomplete="off">
+          <label class="field-label" for="username">Trainer name</label>
+          <input id="username" name="username" type="text" maxlength="24" minlength="1"
+                 placeholder="e.g. AshK3tchum" required
+                 autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="go" />
+          <p class="field-hint">Just for personalization — it never leaves this device.</p>
+          <button type="submit" class="btn btn-primary btn-big">Start the Hunt</button>
+        </form>
+
+        <details class="how-it-works">
+          <summary>How it works</summary>
+          <ol>
+            <li>You hunt <strong>both event days</strong> — a fresh set of 4 tasks each day, matched to that day’s nine featured types: <strong>Catch 26</strong>, <strong>Obtain 1 shiny</strong> (catching or trading both count), <strong>Catch 1 Mewtwo</strong>, and <strong>High five your Community Ambassador</strong>.</li>
+            <li><strong>Evolutions count!</strong> A “Catch 26 Pikachu” task is completed by any mix of Pichu, Pikachu, or Raichu (any form).</li>
+            <li>The Catch and Shiny tasks can each be <strong>rerolled once per day</strong> — two rerolls a day, four for the weekend. You’ll never be dealt the same species twice.</li>
+            <li>Done? <strong>Show this screen and your game</strong> to a Community Ambassador to claim your reward. Nothing to submit, nothing to connect.</li>
+          </ol>
+        </details>
+      </div>
+    </section>
+
+    <!-- ============ Tasks screen ============ -->
+    <section id="screen-tasks" class="screen" hidden>
+      <header class="tasks-header">
+        <div>
+          <p class="eyebrow">GO Fest 2026 Scavenger Hunt</p>
+          <h2 id="greeting">Trainer</h2>
+        </div>
+        <button id="menu-btn" class="btn btn-icon" aria-label="Menu" aria-haspopup="true" aria-expanded="false">⋯</button>
+        <div id="menu-pop" class="menu-pop" hidden>
+          <button id="about-btn" class="menu-item">About this hunt</button>
+          <button id="reset-btn" class="menu-item menu-item-danger">Start over…</button>
+        </div>
+      </header>
+
+      <div id="day-tabs" class="day-tabs" role="group" aria-label="Event day"></div>
+      <div id="day-intro" class="day-intro"></div>
+
+      <div id="all-done-banner" class="all-done" hidden>
+        <span class="all-done-emoji" aria-hidden="true">🎉</span>
+        <div>
+          <strong id="all-done-text">Hunt complete!</strong>
+          <p>Show this screen and your Pokémon GO app to a Community Ambassador to claim your reward.</p>
+        </div>
+      </div>
+
+      <p class="tasks-intro">Complete your tasks in the wild, then verify with a Community&nbsp;Ambassador in person. Tap a card when a task is done.</p>
+
+      <ul id="task-list" class="task-list"></ul>
+
+      <p id="reroll-status" class="reroll-status"></p>
+
+      <footer class="app-footer">
+        <p>Unofficial fan companion for a community-run hunt. Not affiliated with, endorsed by, or connected to Niantic, Nintendo, or The Pokémon Company.</p>
+      </footer>
+    </section>
+  </main>
+
+  <!-- ============ Modal (reroll confirm / about / reset) ============ -->
+  <div id="modal-backdrop" class="modal-backdrop" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <h3 id="modal-title"></h3>
+      <div id="modal-body"></div>
+      <div class="modal-actions">
+        <button id="modal-cancel" class="btn btn-ghost">Cancel</button>
+        <button id="modal-confirm" class="btn btn-primary"></button>
+      </div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
