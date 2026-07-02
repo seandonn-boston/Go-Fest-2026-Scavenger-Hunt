@@ -55,6 +55,12 @@ const NOT_WILD = new Set([
   "riolu", "lucario",         // eggs / research only
   "gimmighoul", "gholdengo",  // PokéStop / research mechanic, not a wild spawn
   "rotom",                    // special research only
+  "togepi", "togetic", "togekiss", // eggs / evolution only
+  "falinks",                  // raids / research only
+  "duraludon",                // raids / research only
+  "cursola",                  // Galarian Corsola line — raids / eggs, not wild
+  "sirfetchd",                // Galarian Farfetch'd line — research / raids, not wild
+  "mr_rime",                  // Galarian Mr. Mime line — eggs / research, not wild
 ]);
 
 // Regional exclusives that CANNOT be caught in Boston, MA — excluded from the
@@ -174,7 +180,7 @@ const displayName = (p) => p.speciesName.replace(/\s*\(.*\)$/, "");
 const species = [];
 for (const members of families.values()) {
   // Drop families that are never found in the wild (no wild-encounterable member).
-  if (members.some((m) => NOT_WILD.has(plainId(m.speciesId)))) continue;
+  if (members.some((m) => NOT_WILD.has(m.speciesId) || NOT_WILD.has(plainId(m.speciesId)))) continue;
 
   // Label: first non-baby member by dex (falls back to the first member).
   const label = members.find((m) => !BABIES.has(m.speciesId)) || members[0];

@@ -5,7 +5,7 @@
  * any asset changes — especially data.js when official spawn lists land.
  * ==========================================================================*/
 
-const CACHE_VERSION = "gofest2026-hunt-v4";
+const CACHE_VERSION = "gofest2026-hunt-v5";
 
 const ASSETS = [
   "./",

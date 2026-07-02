@@ -41,7 +41,7 @@ The "Catch 26" task only draws common/uncommon families (26 Deino would be cruel
 
 ### Regenerating the pool
 
-The `SPECIES` array in `data.js` (377 wild-available evolutionary families, each carrying the full typing used for day placement) is generated — **don't edit it by hand**:
+The `SPECIES` array in `data.js` (371 wild-available evolutionary families, each carrying the full typing used for day placement) is generated — **don't edit it by hand**:
 
 ```bash
 node tools/generate-data.mjs            # fetches PvPoke's GO gamemaster
