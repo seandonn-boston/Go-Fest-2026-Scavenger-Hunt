@@ -1,7 +1,8 @@
-# Deploys the app to GitHub Pages by publishing the repo to the gh-pages
-# branch (creating that branch auto-enables Pages — no repo-settings step
-# and no admin token needed, unlike the actions/deploy-pages flow).
-# The app is plain static files, so the whole repo is the site.
+# Deploys the app to GitHub Pages via the official Actions Pages pipeline.
+# Requires the repo's Pages "Source" to be set to "GitHub Actions"
+# (Settings → Pages → Build and deployment → Source).
+# The app is plain static files with no build step, so the whole repo is
+# uploaded as the site artifact.
 name: Deploy to GitHub Pages
 
 on:
@@ -10,8 +11,11 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
+# One deploy at a time; let an in-flight production deploy finish.
 concurrency:
   group: pages
   cancel-in-progress: false
@@ -19,10 +23,14 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - uses: peaceiris/actions-gh-pages@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .
-          force_orphan: true # keep gh-pages as a single deploy commit
+          path: .
+      - id: deployment
+        uses: actions/deploy-pages@v4
