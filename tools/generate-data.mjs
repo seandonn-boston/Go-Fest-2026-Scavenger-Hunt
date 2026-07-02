@@ -8,8 +8,11 @@
  *   - every species RELEASED in Pokémon GO is eligible…
  *   - …except Legendary, Mythical, and Ultra Beast Pokémon (Mewtwo remains a
  *     special task in data.js, not part of this pool),
- *   - …except regional exclusives that cannot be caught in Boston, MA, and
- *   - …except a small hand-banned list (Ditto, Zorua, Zoroark).
+ *   - …except regional exclusives that cannot be caught in Boston, MA,
+ *   - …except a small hand-banned list (Ditto, Zorua, Zoroark), and
+ *   - …except species that are never found in the wild — obtainable only from
+ *     eggs, raids, evolution, or research (e.g. Smeargle, Tandemaus). Only
+ *     wild-encounterable species spawn during the event. See NOT_WILD below.
  *   - species are grouped into evolutionary families (a task for one member is
  *     satisfied by any member). Each entry carries the label species' full
  *     typing — data.js/app.js use BOTH types to decide which event day(s) a
@@ -37,6 +40,22 @@ const KNOWN_TYPES = new Set([
 
 // Banned from the hunt outright, independent of any other rule.
 const HARD_EXCLUDE = new Set(["ditto", "zorua", "zoroark"]);
+
+// Families with NO member that is ever found in the wild — obtainable only
+// from eggs, raids, evolution, or special research. Only wild-encounterable
+// species can appear during the event, so these are dropped entirely. Match
+// is by plain species id against ANY family member, so listing either the
+// base or an evolution removes the whole line. (Baby-only forms don't belong
+// here — their evolved forms are wild, so the family stays.)
+const NOT_WILD = new Set([
+  "smeargle",                 // photobomb encounters only
+  "tandemaus", "maushold",    // egg-exclusive
+  "larvesta", "volcarona",    // egg-exclusive
+  "toxel", "toxtricity",      // egg-exclusive
+  "riolu", "lucario",         // eggs / research only
+  "gimmighoul", "gholdengo",  // PokéStop / research mechanic, not a wild spawn
+  "rotom",                    // special research only
+]);
 
 // Regional exclusives that CANNOT be caught in Boston, MA — excluded from the
 // pool (the user rule: only Pokémon actually obtainable at the event count).
@@ -85,8 +104,7 @@ const BABIES = new Set([
 const RARE_FAMILIES = new Set([
   "dratini", "larvitar", "bagon", "beldum", "gible", "deino", "axew",
   "goomy", "jangmo_o", "dreepy", "frigibax",
-  "unown", "lucario", "larvesta", "rotom", "gimmighoul",
-  "chansey", "togetic", "noibat",
+  "unown", "chansey", "togetic", "noibat",
 ]);
 
 // Not rare, but noticeably harder to amass than commons (fossils and such).
@@ -155,6 +173,9 @@ const displayName = (p) => p.speciesName.replace(/\s*\(.*\)$/, "");
 
 const species = [];
 for (const members of families.values()) {
+  // Drop families that are never found in the wild (no wild-encounterable member).
+  if (members.some((m) => NOT_WILD.has(plainId(m.speciesId)))) continue;
+
   // Label: first non-baby member by dex (falls back to the first member).
   const label = members.find((m) => !BABIES.has(m.speciesId)) || members[0];
 

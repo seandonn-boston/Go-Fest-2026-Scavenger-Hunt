@@ -23,9 +23,10 @@ Every trainer gets the same four task slots each day:
 
 ## The species pool
 
-Everything spawns in the wild during the event, so **every Pokémon released in Pokémon GO is fair game** except:
+Only Pokémon **found in the wild** can appear during the event, so the pool is **every wild-available Pokémon in Pokémon GO** except:
 
 - **Legendary, Mythical, and Ultra Beast Pokémon** (Mewtwo is the deliberate exception, as its own fixed task — satisfiable via the event's Mega Mewtwo X/Y Super Mega Raids).
+- **Species never found in the wild** — obtainable only from eggs, raids, evolution, or research (e.g. Smeargle, Tandemaus, Larvesta, the Toxel and Riolu lines, Gimmighoul, Rotom). A family stays in only if at least one of its members is a wild encounter, so egg-only babies like Pichu don't remove the wild Pikachu line.
 - **Ditto, Zorua, and Zoroark** — banned outright (shape-shifters make terrible scavenger-hunt targets).
 - **Regional exclusives not catchable in Boston, MA** — Klefki, Kangaskhan, Mr. Mime, Heracross, Corsola, Torkoal, Tropius, Relicanth, Pachirisu, Chatot, Carnivine, Sigilyph, Maractus, Hawlucha, Comfey, Bouffalant (NYC metro only — close, but no), Stonjourner, and the "wrong halves" of regional pairs (Volbeat→we keep Illumise, Zangoose→Seviper, Solrock→Lunatone, Pansage/Pansear→Panpour, Durant→Heatmor). Species where Boston just gets a specific *form* (Shellos, Basculin, Oricorio, Flabébé, Tatsugiri, Squawkabilly) stay in.
 
@@ -40,7 +41,7 @@ The "Catch 26" task only draws common/uncommon families (26 Deino would be cruel
 
 ### Regenerating the pool
 
-The `SPECIES` array in `data.js` (384 evolutionary families, each carrying the full typing used for day placement) is generated — **don't edit it by hand**:
+The `SPECIES` array in `data.js` (377 wild-available evolutionary families, each carrying the full typing used for day placement) is generated — **don't edit it by hand**:
 
 ```bash
 node tools/generate-data.mjs            # fetches PvPoke's GO gamemaster

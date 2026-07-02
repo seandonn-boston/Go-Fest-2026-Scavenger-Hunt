@@ -10,11 +10,13 @@
  *       3. Catch 1 Mewtwo                        (fixed)
  *       4. High five your Community Ambassador   (fixed, just for fun)
  *     → two rerolls per day, four for the weekend.
- *   - Species pool: EVERY Pokémon released in Pokémon GO that isn't Legendary,
- *     Mythical, or an Ultra Beast — everything spawns in the wild this event.
- *     A species qualifies for a day if EITHER of its types is among that day's
- *     nine featured types, so dual-typed species like Ralts (Psychic/Fairy)
- *     can be rolled on either day, while Snorunt (Ice) is Saturday-only.
+ *   - Species pool: every Pokémon FOUND IN THE WILD in Pokémon GO that isn't
+ *     Legendary, Mythical, or an Ultra Beast. Species obtainable only from
+ *     eggs, raids, evolution, or research (e.g. Smeargle, Tandemaus) never
+ *     appear. A species qualifies for a day if EITHER of its types is among
+ *     that day's nine featured types, so dual-typed species like Ralts
+ *     (Psychic/Fairy) can be rolled on either day, while Snorunt (Ice) is
+ *     Saturday-only.
  *   - Regional exclusives that can't be caught in Boston, MA (Klefki,
  *     Kangaskhan, Mr. Mime, …) are excluded, as are Ditto, Zorua & Zoroark.
  *   - Tasks target whole evolutionary FAMILIES: babies, evolutions, and
@@ -233,7 +235,6 @@ const SPECIES = [
   { name: "Houndour", types: ["dark","fire"], tier: "common", line: "Houndour & Houndoom" },
   { name: "Phanpy", types: ["ground"], tier: "common", line: "Phanpy & Donphan" },
   { name: "Stantler", types: ["normal"], tier: "common", line: "Stantler & Wyrdeer" },
-  { name: "Smeargle", types: ["normal"], tier: "uncommon", line: "Smeargle" },
   { name: "Miltank", types: ["normal"], tier: "uncommon", line: "Miltank" },
   { name: "Larvitar", types: ["rock","ground"], tier: "rare", line: "Larvitar, Pupitar & Tyranitar" },
   { name: "Treecko", types: ["grass"], tier: "common", line: "Treecko, Grovyle & Sceptile" },
@@ -315,13 +316,11 @@ const SPECIES = [
   { name: "Bronzor", types: ["steel","psychic"], tier: "common", line: "Bronzor & Bronzong" },
   { name: "Spiritomb", types: ["ghost","dark"], tier: "uncommon", line: "Spiritomb" },
   { name: "Gible", types: ["dragon","ground"], tier: "rare", line: "Gible, Gabite & Garchomp" },
-  { name: "Lucario", types: ["fighting","steel"], tier: "rare", line: "Riolu & Lucario" },
   { name: "Hippopotas", types: ["ground"], tier: "common", line: "Hippopotas & Hippowdon" },
   { name: "Skorupi", types: ["poison","bug"], tier: "common", line: "Skorupi & Drapion" },
   { name: "Croagunk", types: ["poison","fighting"], tier: "common", line: "Croagunk & Toxicroak" },
   { name: "Finneon", types: ["water"], tier: "common", line: "Finneon & Lumineon" },
   { name: "Snover", types: ["grass","ice"], tier: "common", line: "Snover & Abomasnow" },
-  { name: "Rotom", types: ["electric","ghost"], tier: "rare", line: "Rotom" },
   { name: "Snivy", types: ["grass"], tier: "common", line: "Snivy, Servine & Serperior" },
   { name: "Tepig", types: ["fire"], tier: "common", line: "Tepig, Pignite & Emboar" },
   { name: "Oshawott", types: ["water"], tier: "common", line: "Oshawott, Dewott & Samurott — any form" },
@@ -385,7 +384,6 @@ const SPECIES = [
   { name: "Vullaby", types: ["dark","flying"], tier: "common", line: "Vullaby & Mandibuzz" },
   { name: "Heatmor", types: ["fire"], tier: "uncommon", line: "Heatmor" },
   { name: "Deino", types: ["dark","dragon"], tier: "rare", line: "Deino, Zweilous & Hydreigon" },
-  { name: "Larvesta", types: ["bug","fire"], tier: "rare", line: "Larvesta & Volcarona" },
   { name: "Chespin", types: ["grass"], tier: "common", line: "Chespin, Quilladin & Chesnaught" },
   { name: "Fennekin", types: ["fire"], tier: "common", line: "Fennekin, Braixen & Delphox" },
   { name: "Froakie", types: ["water"], tier: "common", line: "Froakie, Frogadier & Greninja" },
@@ -458,7 +456,6 @@ const SPECIES = [
   { name: "Rolycoly", types: ["rock"], tier: "common", line: "Rolycoly, Carkol & Coalossal" },
   { name: "Applin", types: ["grass","dragon"], tier: "common", line: "Applin, Flapple, Appletun, Dipplin & Hydrapple" },
   { name: "Silicobra", types: ["ground"], tier: "common", line: "Silicobra & Sandaconda" },
-  { name: "Toxtricity", types: ["electric","poison"], tier: "common", line: "Toxel & Toxtricity" },
   { name: "Sizzlipede", types: ["fire","bug"], tier: "common", line: "Sizzlipede & Centiskorch" },
   { name: "Clobbopus", types: ["fighting"], tier: "common", line: "Clobbopus & Grapploct" },
   { name: "Sinistea", types: ["ghost"], tier: "common", line: "Sinistea & Polteageist" },
@@ -481,7 +478,6 @@ const SPECIES = [
   { name: "Tarountula", types: ["bug"], tier: "common", line: "Tarountula & Spidops" },
   { name: "Nymble", types: ["bug"], tier: "common", line: "Nymble & Lokix" },
   { name: "Pawmi", types: ["electric"], tier: "common", line: "Pawmi, Pawmo & Pawmot" },
-  { name: "Tandemaus", types: ["normal"], tier: "common", line: "Tandemaus & Maushold" },
   { name: "Fidough", types: ["fairy"], tier: "common", line: "Fidough & Dachsbun" },
   { name: "Smoliv", types: ["grass","normal"], tier: "common", line: "Smoliv, Dolliv & Arboliva" },
   { name: "Squawkabilly", types: ["normal","flying"], tier: "uncommon", line: "Squawkabilly" },
@@ -506,7 +502,6 @@ const SPECIES = [
   { name: "Tatsugiri", types: ["dragon","water"], tier: "uncommon", line: "Tatsugiri" },
   { name: "Clodsire", types: ["poison","ground"], tier: "uncommon", line: "Clodsire" },
   { name: "Frigibax", types: ["dragon","ice"], tier: "rare", line: "Frigibax, Arctibax & Baxcalibur" },
-  { name: "Gimmighoul", types: ["ghost"], tier: "rare", line: "Gimmighoul & Gholdengo" },
   { name: "Poltchageist", types: ["grass","ghost"], tier: "common", line: "Poltchageist & Sinistcha" },
 // END GENERATED SPECIES
 ];

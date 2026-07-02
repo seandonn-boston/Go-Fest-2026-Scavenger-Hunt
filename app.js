@@ -362,7 +362,7 @@
       title: "About this hunt",
       bodyHTML: `
         <p>An <strong>unofficial, community-run scavenger hunt</strong> for GO Fest 2026: Global (July 11–12).</p>
-        <p>You hunt twice — four fresh tasks each day, matched to that day's nine featured types. Every non-Legendary Pokémon in the game is fair game (minus regionals we can't get in Boston, and no shape-shifters — sorry, Ditto and Zorua). A task for one species is satisfied by anything in its evolutionary family, and you'll never be asked to hunt the same species twice all weekend.</p>
+        <p>You hunt twice — four fresh tasks each day, matched to that day's nine featured types. Every wild-spawning, non-Legendary Pokémon is fair game (minus regionals we can't get in Boston, egg/raid-only species, and shape-shifters — sorry, Ditto and Zorua). A task for one species is satisfied by anything in its evolutionary family, and you'll never be asked to hunt the same species twice all weekend.</p>
         <p>Everything is stored on this device only. To claim your reward, show this app and your Pokémon GO app to a Community Ambassador.</p>
         <p>Not affiliated with Niantic, Nintendo, or The Pokémon Company.</p>`,
       confirmLabel: "Got it",
