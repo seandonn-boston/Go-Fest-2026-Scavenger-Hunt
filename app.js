@@ -12,7 +12,10 @@
 (function () {
   "use strict";
 
-  const STORAGE_KEY = "gofest2026-hunt-v2";
+  // Bump this when the saved-hunt shape or the deal rules change, so hunts
+  // dealt under old rules are discarded instead of rendered with stale data
+  // (e.g. a pre-window-cut habitat, or a catch task with no random count).
+  const STORAGE_KEY = "gofest2026-hunt-v3";
 
   /**
    * @type {{
