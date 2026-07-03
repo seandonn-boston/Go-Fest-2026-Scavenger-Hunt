@@ -224,8 +224,9 @@ writeFileSync(
 
 // ---- report ------------------------------------------------------------------
 // Day membership mirrors DAYS[*].types in data.js — keep these in sync.
-const SATURDAY = new Set(["ice", "electric", "fire", "psychic", "ghost", "water", "flying", "rock", "dragon"]);
-const SUNDAY = new Set(["ground", "steel", "normal", "poison", "bug", "grass", "dark", "fairy", "fighting"]);
+// Only the first two habitat blocks (10am–4pm) count; the 4–7pm block is cut.
+const SATURDAY = new Set(["ice", "electric", "fire", "psychic", "ghost", "water"]);
+const SUNDAY = new Set(["ground", "steel", "normal", "poison", "bug", "grass"]);
 let sat = 0, sun = 0, both = 0;
 const perTier = {};
 for (const s of species) {

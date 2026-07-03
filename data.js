@@ -5,18 +5,20 @@
  *   - The hunt runs TWICE: a fresh set of tasks each event day, with separate
  *     progress. Day 1 = Saturday's habitats, Day 2 = Sunday's habitats.
  *   - Each day a trainer gets exactly FOUR tasks:
- *       1. Catch 26 [species]                    (rerollable, once)
+ *       1. Catch N [species]  (N random 5–26, re-rolled with the task)  (rerollable, once)
  *       2. Obtain 1 shiny [species]              (rerollable, once — catch OR trade)
  *       3. Catch 1 Mewtwo                        (fixed)
  *       4. High five your Community Ambassador   (fixed, just for fun)
  *     → two rerolls per day, four for the weekend.
+ *   - Each day only counts its first two habitat blocks (10am–4pm); the final
+ *     4pm–7pm block is cut so a giveaway can run before the day ends.
  *   - Species pool: every Pokémon FOUND IN THE WILD in Pokémon GO that isn't
  *     Legendary, Mythical, or an Ultra Beast. Species obtainable only from
  *     eggs, raids, evolution, or research (e.g. Smeargle, Tandemaus) never
- *     appear. A species qualifies for a day if EITHER of its types is among
- *     that day's nine featured types, so dual-typed species like Ralts
- *     (Psychic/Fairy) can be rolled on either day, while Snorunt (Ice) is
- *     Saturday-only.
+ *     appear, and neither do species that would only spawn in the cut 4–7pm
+ *     block. A species qualifies for a day if EITHER of its types is among
+ *     that day's six featured types, so dual-typed species like Ralts
+ *     (Psychic/Fairy) can still qualify (Psychic → Saturday).
  *   - Regional exclusives that can't be caught in Boston, MA (Klefki,
  *     Kangaskhan, Mr. Mime, …) are excluded, as are Ditto, Zorua & Zoroark.
  *   - Tasks target whole evolutionary FAMILIES: babies, evolutions, and
@@ -86,26 +88,32 @@ const TYPE_HABITAT = {
   dark: "twilight", fairy: "twilight", fighting: "twilight",
 };
 
-// The two event days, each featuring nine types. A species can be rolled on a
-// day if EITHER of its types is featured that day.
+// The two event days. Only the FIRST TWO habitat blocks (10am–4pm) count, so a
+// giveaway can run before the day is over — the final 4pm–7pm block is cut, and
+// species that would only appear then are excluded. A species can be rolled on
+// a day if EITHER of its types is featured in that day's remaining six types.
 const DAYS = {
   day1: {
     label: "Saturday",
     date: "Jul 11",
-    habitats: ["stormfire", "astral", "dragonflight"],
-    types: ["ice", "electric", "fire", "psychic", "ghost", "water", "flying", "rock", "dragon"],
+    window: "10am–4pm",
+    habitats: ["stormfire", "astral"],
+    types: ["ice", "electric", "fire", "psychic", "ghost", "water"],
   },
   day2: {
     label: "Sunday",
     date: "Jul 12",
-    habitats: ["earthforged", "verdant", "twilight"],
-    types: ["ground", "steel", "normal", "poison", "bug", "grass", "dark", "fairy", "fighting"],
+    window: "10am–4pm",
+    habitats: ["earthforged", "verdant"],
+    types: ["ground", "steel", "normal", "poison", "bug", "grass"],
   },
 };
 
-// Task 1: "Catch 26 [species]". Drawn from these rarity tiers only — catching
-// 26 of a pseudo-legendary line would be miserable even at GO Fest.
-const CATCH_TASK_COUNT = 26;
+// Task 1: "Catch N [species]", where N is randomized per deal (and re-rolled
+// with the task). Drawn from these rarity tiers only — catching 26 of a
+// pseudo-legendary line would be miserable even at GO Fest.
+const CATCH_COUNT_MIN = 5;
+const CATCH_COUNT_MAX = 26;
 const CATCH_TASK_TIERS = ["common", "uncommon"];
 
 // Task 2: "Obtain 1 shiny [species]". One is all it takes, so any tier goes.

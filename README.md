@@ -10,13 +10,15 @@ Every trainer gets the same four task slots each day:
 
 | # | Task | Rerollable? |
 | --- | --- | --- |
-| 1 | **Catch 26 [species]** | ✅ once per day |
+| 1 | **Catch _N_ [species]** — _N_ is random 5–26, re-rolled with the task | ✅ once per day |
 | 2 | **Obtain 1 shiny [species]** — catching *or trading* both count | ✅ once per day |
 | 3 | **Catch 1 Mewtwo** | ❌ fixed |
 | 4 | **High five your Community Ambassador** | ❌ fixed (and mandatory 🖐️) |
 
 - **Two hunts per weekend.** Saturday and Sunday each get their own tasks, their own progress, their own Mewtwo (2 expected for the weekend), and their own rerolls.
-- **Species lines count.** A "Catch 26 Pikachu" task is satisfied by any mix of Pichu, Pikachu, or Raichu (any form, including Alolan). Every card spells out its family so there's no arguing at the verification table.
+- **10am–4pm only.** Each day counts just its first two habitat blocks; the final 4pm–7pm block is cut so a giveaway can happen before the day ends. Species that would only spawn in that last block don't appear.
+- **The Catch count is random.** Each Catch task rolls a target between **5 and 26**, and rerolling the task rolls a new number too.
+- **Species lines count.** A "Catch 20 Pikachu" task is satisfied by any mix of Pichu, Pikachu, or Raichu (any form, including Alolan). Every card spells out its family so there's no arguing at the verification table.
 - **Two rerolls per day, four per weekend** — one for the Catch task, one for the Shiny task, each behind a confirmation warning. Mewtwo and the high five can't be rerolled.
 - **No repeats, ever.** The Catch species never matches the Shiny species, and no species is dealt twice in one weekend: every draw and every reroll excludes everything previously rolled — including species rerolled away (the trainer already said they don't want them). Reroll everything both days and you're guaranteed 8 distinct species.
 - **Everything is local.** Name, tasks, rerolls, and completion checkmarks live in `localStorage`. Verification is human: show an Ambassador.
@@ -30,14 +32,14 @@ Only Pokémon **found in the wild** can appear during the event, so the pool is 
 - **Ditto, Zorua, and Zoroark** — banned outright (shape-shifters make terrible scavenger-hunt targets).
 - **Regional exclusives not catchable in Boston, MA** — Klefki, Kangaskhan, Mr. Mime, Heracross, Corsola, Torkoal, Tropius, Relicanth, Pachirisu, Chatot, Carnivine, Sigilyph, Maractus, Hawlucha, Comfey, Bouffalant (NYC metro only — close, but no), Stonjourner, and the "wrong halves" of regional pairs (Volbeat→we keep Illumise, Zangoose→Seviper, Solrock→Lunatone, Pansage/Pansear→Panpour, Durant→Heatmor). Species where Boston just gets a specific *form* (Shellos, Basculin, Oricorio, Flabébé, Tatsugiri, Squawkabilly) stay in.
 
-The pool is split into a **Saturday list and a Sunday list by type**. Each day features nine types, and a species qualifies for a day if **either** of its types is featured — so dual-typed species can appear on both lists. Ralts (Psychic/Fairy) can roll on either day; Froslass's line (Ice) is Saturday-only. The weekend no-repeat rule is what keeps a trainer from hunting Ralts twice.
+The pool is split into a **Saturday list and a Sunday list by type**. Only each day's first two habitat blocks (10am–4pm) count — the 4–7pm block is cut — so each day features **six** types. A species qualifies for a day if **either** of its types is featured. Ralts (Psychic/Fairy) still qualifies for Saturday via Psychic; a pure Fighting or Dragon species that would only appear in the cut block is left out entirely. The weekend no-repeat rule keeps a trainer from hunting the same species twice.
 
-| Day | Featured types | Habitat blocks |
-| --- | --- | --- |
-| Sat Jul 11 | Ice, Electric, Fire, Psychic, Ghost, Water, Flying, Rock, Dragon | Stormfire Peaks (10–1) · Astral Tides (1–4) · Dragonflight Summit (4–7) |
-| Sun Jul 12 | Ground, Steel, Normal, Poison, Bug, Grass, Dark, Fairy, Fighting | Earthforged Domain (10–1) · Verdant Anomaly (1–4) · Twilight Battlefield (4–7) |
+| Day | Featured types (10am–4pm) | Habitat blocks (counted) | Cut (4–7pm) |
+| --- | --- | --- | --- |
+| Sat Jul 11 | Ice, Electric, Fire, Psychic, Ghost, Water | Stormfire Peaks (10–1) · Astral Tides (1–4) | ~~Dragonflight Summit — Flying, Rock, Dragon~~ |
+| Sun Jul 12 | Ground, Steel, Normal, Poison, Bug, Grass | Earthforged Domain (10–1) · Verdant Anomaly (1–4) | ~~Twilight Battlefield — Dark, Fairy, Fighting~~ |
 
-The "Catch 26" task only draws common/uncommon families (26 Deino would be cruel); the Shiny task can roll anything, pseudo-legendaries included.
+The Catch task only draws common/uncommon families (26 Deino would be cruel); the Shiny task can roll anything, pseudo-legendaries included.
 
 ### Regenerating the pool
 

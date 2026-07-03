@@ -61,6 +61,10 @@
     return arr[Math.floor(Math.random() * arr.length)];
   }
 
+  function randInt(min, max) {
+    return min + Math.floor(Math.random() * (max - min + 1));
+  }
+
   function cryptoId() {
     return Math.random().toString(36).slice(2, 10);
   }
@@ -97,10 +101,13 @@
 
   function makeSpeciesTask(type, dayKey) {
     const species = pickSpecies(dayKey, type === "catch" ? CATCH_TASK_TIERS : SHINY_TASK_TIERS);
-    return { id: cryptoId(), type, species: species.name, habitat: habitatFor(species, dayKey), done: false };
+    const task = { id: cryptoId(), type, species: species.name, habitat: habitatFor(species, dayKey), done: false };
+    // Catch tasks get a fresh random target count (re-rolled with the task).
+    if (type === "catch") task.count = randInt(CATCH_COUNT_MIN, CATCH_COUNT_MAX);
+    return task;
   }
 
-  /** Deal a full day: catch 26, shiny, Mewtwo, high five — in that order. */
+  /** Deal a full day: catch N, shiny, Mewtwo, high five — in that order. */
   function dealDay(dayKey) {
     state.days[dayKey] = {
       tasks: [
@@ -119,7 +126,7 @@
     if (task.type === "mewtwo") return MEWTWO_TASK.text;
     if (task.type === "highfive") return HIGHFIVE_TASK.text;
     if (task.type === "shiny") return `Obtain 1 shiny ${task.species}`;
-    return `Catch ${CATCH_TASK_COUNT} ${task.species}`;
+    return `Catch ${task.count} ${task.species}`;
   }
 
   function taskNote(task) {
@@ -362,7 +369,7 @@
       title: "About this hunt",
       bodyHTML: `
         <p>An <strong>unofficial, community-run scavenger hunt</strong> for GO Fest 2026: Global (July 11–12).</p>
-        <p>You hunt twice — four fresh tasks each day, matched to that day's nine featured types. Every wild-spawning, non-Legendary Pokémon is fair game (minus regionals we can't get in Boston, egg/raid-only species, and shape-shifters — sorry, Ditto and Zorua). A task for one species is satisfied by anything in its evolutionary family, and you'll never be asked to hunt the same species twice all weekend.</p>
+        <p>You hunt twice — four fresh tasks each day, matched to what spawns in that day's 10am–4pm window (the final 4–7pm block is left out so rewards can be handed out earlier). Every wild-spawning, non-Legendary Pokémon in that window is fair game (minus regionals we can't get in Boston, egg/raid-only species, and shape-shifters — sorry, Ditto and Zorua). A task for one species is satisfied by anything in its evolutionary family, and you'll never be asked to hunt the same species twice all weekend.</p>
         <p>Everything is stored on this device only. To claim your reward, show this app and your Pokémon GO app to a Community Ambassador.</p>
         <p>Not affiliated with Niantic, Nintendo, or The Pokémon Company.</p>`,
       confirmLabel: "Got it",
