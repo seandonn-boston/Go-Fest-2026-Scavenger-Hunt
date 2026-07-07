@@ -10,7 +10,7 @@
  * the manifest are cache-first (they rarely change and speed is nice).
  * ==========================================================================*/
 
-const CACHE_VERSION = "gofest2026-hunt-v7";
+const CACHE_VERSION = "gofest2026-hunt-v8";
 const NET_TIMEOUT_MS = 3000;
 
 const ASSETS = [

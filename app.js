@@ -153,7 +153,6 @@
   const dayIntro = $("#day-intro");
   const rerollStatus = $("#reroll-status");
   const allDoneBanner = $("#all-done-banner");
-  const allDoneText = $("#all-done-text");
   const menuBtn = $("#menu-btn");
   const menuPop = $("#menu-pop");
   const modalBackdrop = $("#modal-backdrop");
@@ -315,19 +314,40 @@
         ? `Both of ${day.label}'s rerolls have been used.`
         : `${left} of 2 rerolls left for ${day.label} — one each for the Catch and Shiny tasks.`;
 
-    const allDone = dayState.tasks.every((t) => t.done);
-    allDoneText.textContent = `${day.label}'s hunt complete!`;
-    allDoneBanner.hidden = !allDone;
+    // "Qualified" = the three real tasks are done (the high five happens at the
+    // tent, so it doesn't gate the giveaway).
+    allDoneBanner.hidden = !isQualified(dayState);
+  }
+
+  /** The giveaway-qualifying tasks: everything except the high five. */
+  function qualifyingTasks(dayState) {
+    return dayState.tasks.filter((t) => t.type !== "highfive");
+  }
+
+  function isQualified(dayState) {
+    return qualifyingTasks(dayState).every((t) => t.done);
   }
 
   // ---------------------------------------------------------------- actions
   function toggleDone(index) {
     const dayState = state.days[activeDay];
-    const wasAllDone = dayState.tasks.every((t) => t.done);
+    const wasQualified = isQualified(dayState);
     dayState.tasks[index].done = !dayState.tasks[index].done;
     saveState();
     renderTasks();
-    if (!wasAllDone && dayState.tasks.every((t) => t.done)) celebrate();
+    // Fire the fun popup the moment the three real tasks are all complete
+    // (the high five may or may not be done — it doesn't matter).
+    if (!wasQualified && isQualified(dayState)) showGiveawayPopup();
+  }
+
+  function showGiveawayPopup() {
+    celebrate();
+    openModal({
+      title: "🎉 Tasks complete!",
+      bodyHTML: `<p style="font-size:16px;color:var(--ink)"><strong>Check in with the Community Ambassador Tent to enter the giveaway!</strong></p>`,
+      confirmLabel: "On my way!",
+      infoOnly: true,
+    });
   }
 
   function confirmReroll(index) {
