@@ -345,7 +345,7 @@
     openModal({
       title: "🎉 Tasks complete!",
       bodyHTML: `<p style="font-size:16px;color:var(--ink)"><strong>Check in with the Community Ambassador Tent to enter the giveaway!</strong></p>`,
-      confirmLabel: "On my way!",
+      confirmLabel: "Ok",
       infoOnly: true,
     });
   }
