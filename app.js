@@ -152,7 +152,6 @@
   const dayTabs = $("#day-tabs");
   const dayIntro = $("#day-intro");
   const rerollStatus = $("#reroll-status");
-  const allDoneBanner = $("#all-done-banner");
   const menuBtn = $("#menu-btn");
   const menuPop = $("#menu-pop");
   const modalBackdrop = $("#modal-backdrop");
@@ -165,15 +164,30 @@
   // ---------------------------------------------------------------- modal
   let onModalConfirm = null;
 
-  function openModal({ title, bodyHTML, confirmLabel, infoOnly = false, danger = false, onConfirm = null }) {
+  function openModal({
+    title,
+    bodyHTML,
+    confirmLabel,
+    cancelLabel = "Cancel",
+    infoOnly = false,
+    danger = false,
+    emphasizeCancel = false,
+    onConfirm = null,
+  }) {
     modalTitle.textContent = title;
     modalBody.innerHTML = bodyHTML;
     modalConfirm.textContent = confirmLabel;
+    modalCancel.textContent = cancelLabel;
+    // When emphasizeCancel is set, the SAFE choice (cancel) becomes the big
+    // primary button and the action button goes quiet — so an accidental
+    // tap-through backs out instead of doing something irreversible.
+    modalConfirm.className = "btn " + (emphasizeCancel ? "btn-ghost" : "btn-primary");
+    modalCancel.className = "btn " + (emphasizeCancel ? "btn-primary" : "btn-ghost");
     modalConfirm.style.background = danger ? "linear-gradient(120deg,#e03131,#ff6b6b)" : "";
     modalEl.classList.toggle("modal-info", infoOnly);
     onModalConfirm = onConfirm;
     modalBackdrop.hidden = false;
-    modalConfirm.focus();
+    (emphasizeCancel ? modalCancel : modalConfirm).focus();
   }
 
   function closeModal() {
@@ -313,41 +327,15 @@
       left === 0
         ? `Both of ${day.label}'s rerolls have been used.`
         : `${left} of 2 rerolls left for ${day.label} — one each for the Catch and Shiny tasks.`;
-
-    // "Qualified" = the three real tasks are done (the high five happens at the
-    // tent, so it doesn't gate the giveaway).
-    allDoneBanner.hidden = !isQualified(dayState);
-  }
-
-  /** The giveaway-qualifying tasks: everything except the high five. */
-  function qualifyingTasks(dayState) {
-    return dayState.tasks.filter((t) => t.type !== "highfive");
-  }
-
-  function isQualified(dayState) {
-    return qualifyingTasks(dayState).every((t) => t.done);
   }
 
   // ---------------------------------------------------------------- actions
   function toggleDone(index) {
-    const dayState = state.days[activeDay];
-    const wasQualified = isQualified(dayState);
-    dayState.tasks[index].done = !dayState.tasks[index].done;
+    // Completing a task shows nothing new — trainers must go to the tent to
+    // actually enter, so we don't imply anything is automatic here.
+    state.days[activeDay].tasks[index].done = !state.days[activeDay].tasks[index].done;
     saveState();
     renderTasks();
-    // Fire the fun popup the moment the three real tasks are all complete
-    // (the high five may or may not be done — it doesn't matter).
-    if (!wasQualified && isQualified(dayState)) showGiveawayPopup();
-  }
-
-  function showGiveawayPopup() {
-    celebrate();
-    openModal({
-      title: "🎉 Tasks complete!",
-      bodyHTML: `<p style="font-size:16px;color:var(--ink)"><strong>Check in with the Community Ambassador Tent to enter the giveaway!</strong></p>`,
-      confirmLabel: "Ok",
-      infoOnly: true,
-    });
   }
 
   function confirmReroll(index) {
@@ -357,10 +345,12 @@
     openModal({
       title: `Reroll your ${label} task?`,
       bodyHTML: `
-        <p>This will replace:</p>
+        <p>You'd swap out:</p>
         <div class="modal-task-preview">${escapeHTML(taskText(task))}</div>
-        <p>The ${label} task can be rerolled <strong>once per day</strong> — after this, it's locked in for ${DAYS[activeDay].label}.</p>`,
-      confirmLabel: "Reroll it",
+        <p>This is permanent: it replaces this species and spends your <strong>only ${label} reroll</strong> for ${DAYS[activeDay].label}. Happy hunting this one? Keep it.</p>`,
+      confirmLabel: "Reroll",
+      cancelLabel: "Keep it",
+      emphasizeCancel: true,
       onConfirm: () => {
         const fresh = makeSpeciesTask(task.type, activeDay);
         dayState.tasks[index] = fresh;
@@ -404,23 +394,6 @@
     const div = document.createElement("div");
     div.textContent = str;
     return div.innerHTML;
-  }
-
-  // ---------------------------------------------------------------- confetti
-  function celebrate() {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const colors = ["#ffd43b", "#845ef7", "#51cf66", "#ff6b6b", "#22b8cf", "#f783ac"];
-    for (let i = 0; i < 80; i++) {
-      const piece = document.createElement("div");
-      piece.className = "confetti";
-      piece.style.left = Math.random() * 100 + "vw";
-      piece.style.background = pickFrom(colors);
-      piece.style.animationDuration = 2.2 + Math.random() * 2.2 + "s";
-      piece.style.animationDelay = Math.random() * 0.6 + "s";
-      piece.style.transform = `rotate(${Math.random() * 360}deg)`;
-      document.body.appendChild(piece);
-      setTimeout(() => piece.remove(), 5500);
-    }
   }
 
   // ---------------------------------------------------------------- wire-up
